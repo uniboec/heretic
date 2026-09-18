@@ -1,0 +1,10 @@
+# Исключения для rsync/scp на VPS
+node_modules
+.next
+.git
+.env
+.env.local
+playwright-report
+test-results
+terminals
+*.log

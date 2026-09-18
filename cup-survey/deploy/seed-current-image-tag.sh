@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=common.sh
+source "${SCRIPT_DIR}/common.sh"
+cup_survey_cd
+
+RUNNING_CID="$(docker compose -f "${COMPOSE_FILE}" ps -q app | head -1)"
+[[ -n "${RUNNING_CID}" ]] || { echo "seed aborted: no running app"; exit 1; }
+
+RUNNING_IMAGE_ID="$(docker inspect "${RUNNING_CID}" --format '{{.Image}}')"
+
+if docker image inspect cup-survey-app:current >/dev/null 2>&1; then
+  CURRENT_TAG_IMAGE_ID="$(docker image inspect cup-survey-app:current --format '{{.Id}}')"
+  if [[ "${CURRENT_TAG_IMAGE_ID}" != "${RUNNING_IMAGE_ID}" ]]; then
+    echo "seed aborted: cup-survey-app:current exists but differs from running" >&2
+    echo "  :current=${CURRENT_TAG_IMAGE_ID}" >&2
+    echo "  running=${RUNNING_IMAGE_ID}" >&2
+    exit 1
+  fi
+  echo "seed skipped: cup-survey-app:current already matches running"
+else
+  docker tag "${RUNNING_IMAGE_ID}" cup-survey-app:current
+  CURRENT_TAG_IMAGE_ID="${RUNNING_IMAGE_ID}"
+  echo "seed OK: tagged running image as cup-survey-app:current"
+fi
+
+if [[ ! -f "${MANIFEST_PATH}" ]]; then
+  echo "seed aborted: manifest missing (run bootstrap first)" >&2
+  exit 1
+fi
+
+"${PYTHON}" - "${MANIFEST_PATH}" "${RUNNING_IMAGE_ID}" "${CURRENT_TAG_IMAGE_ID}" <<'PY'
+import sys
+
+sys.path.insert(0, "/opt/cup-survey/deploy")
+from static_manifest import get_current_deploy, load_manifest
+
+manifest_path, running, current_tag = sys.argv[1:4]
+manifest = load_manifest(manifest_path)
+current = get_current_deploy(manifest)
+if current is None:
+    sys.exit("manifest has no current deploy")
+if current["image_id"] != running or running != current_tag:
+    sys.exit(
+        "three-way mismatch after seed:\n"
+        f"  manifest={current['image_id']}\n"
+        f"  running={running}\n"
+        f"  :current={current_tag}"
+    )
+print("three-way identity OK after seed")
+PY
