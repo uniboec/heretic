@@ -27,7 +27,7 @@ rollback_deploy() {
   fi
 
   if [[ "${CONTAINER_SWITCHED}" -eq 1 ]]; then
-    docker compose -f "${COMPOSE_FILE}" up -d --no-build --force-recreate app 2>/dev/null || true
+    docker compose -f "${COMPOSE_FILE}" up -d --no-build --no-deps --force-recreate app 2>/dev/null || true
     sleep 10
     local rollback_cid
     rollback_cid="$(docker compose -f "${COMPOSE_FILE}" ps -q app)"
@@ -78,7 +78,9 @@ METADATA_FILE="$(mktemp /tmp/cup-survey-merge-meta.XXXXXX.json)"
 ./deploy/merge-static-assets.sh "${IMAGE_REF}" "${IMAGE_ID}" "${METADATA_FILE}"
 
 docker tag "${IMAGE_ID}" cup-survey-app:current
-docker compose -f "${COMPOSE_FILE}" up -d --no-build --force-recreate app
+# App-only switch: --no-deps avoids implicit migrate service (cup-survey-migrate image).
+# Schema changes must be verified/applied in a separate explicit migration stage before release.
+docker compose -f "${COMPOSE_FILE}" up -d --no-build --no-deps --force-recreate app
 CONTAINER_SWITCHED=1
 
 sleep 10
