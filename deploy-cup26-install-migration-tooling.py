@@ -16,7 +16,7 @@ OUT = ROOT / "deploy-cup26-install-migration-tooling-result.json"
 
 FILES_TO_INSTALL = [
     "deploy/common.sh",
-    "deploy/static-manifest.py",
+    "deploy/static_manifest.py",
     "deploy/write-merge-metadata.py",
     "deploy/merge-static-assets.sh",
     "deploy/bootstrap-static-assets.sh",

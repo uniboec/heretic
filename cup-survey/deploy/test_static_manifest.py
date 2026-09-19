@@ -1,30 +1,25 @@
 #!/usr/bin/env python3
-"""Unit tests for static-manifest.py"""
+"""Unit tests for static_manifest.py"""
 from __future__ import annotations
 
-import importlib.util
 import json
 import sys
 import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-_spec = importlib.util.spec_from_file_location(
-    "static_manifest", Path(__file__).parent / "static-manifest.py"
-)
-_mod = importlib.util.module_from_spec(_spec)
-assert _spec.loader is not None
-sys.modules["static_manifest"] = _mod
-_spec.loader.exec_module(_mod)
-ManifestCorruptError = _mod.ManifestCorruptError
-ManifestError = _mod.ManifestError
-ManifestMissingError = _mod.ManifestMissingError
-add_initial_deploy_atomic = _mod.add_initial_deploy_atomic
-compute_protected_set = _mod.compute_protected_set
-format_utc = _mod.format_utc
-load_manifest = _mod.load_manifest
-retire_and_promote_current_atomic = _mod.retire_and_promote_current_atomic
-validate_manifest = _mod.validate_manifest
+sys.path.insert(0, str(Path(__file__).parent))
+import static_manifest
+
+ManifestCorruptError = static_manifest.ManifestCorruptError
+ManifestError = static_manifest.ManifestError
+ManifestMissingError = static_manifest.ManifestMissingError
+add_initial_deploy_atomic = static_manifest.add_initial_deploy_atomic
+compute_protected_set = static_manifest.compute_protected_set
+format_utc = static_manifest.format_utc
+load_manifest = static_manifest.load_manifest
+retire_and_promote_current_atomic = static_manifest.retire_and_promote_current_atomic
+validate_manifest = static_manifest.validate_manifest
 
 SHA = "sha256:" + "a" * 64
 SHA_B = "sha256:" + "b" * 64
