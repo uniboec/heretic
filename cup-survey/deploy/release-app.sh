@@ -4,6 +4,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=common.sh
 source "${SCRIPT_DIR}/common.sh"
+# shellcheck source=release-image-retention.sh
+source "${SCRIPT_DIR}/release-image-retention.sh"
 cup_survey_cd
 
 : "${CUP_RELEASE_TAG:?CUP_RELEASE_TAG is required}"
@@ -61,18 +63,20 @@ while IFS= read -r line; do
   esac
 done < <(./deploy/prevalidate-production-state.sh)
 
+ensure_previous_image_protected "${PREVIOUS_IMAGE_ID}"
+
 BUILD_TAG="${CUP_RELEASE_TAG}"
 docker compose -f "${COMPOSE_FILE}" build app
 
-if docker image inspect cup-survey-app:current >/dev/null 2>&1; then
-  docker tag cup-survey-app:current "cup-survey-app:${BUILD_TAG}"
-else
+if ! docker image inspect cup-survey-app:current >/dev/null 2>&1; then
   echo "release-app aborted: cup-survey-app:current missing after build" >&2
   exit 1
 fi
 
+BUILT_IMAGE_ID="$(docker image inspect --format '{{.Id}}' cup-survey-app:current)"
 IMAGE_REF="cup-survey-app:${BUILD_TAG}"
-IMAGE_ID="$(docker image inspect --format '{{.Id}}' "${IMAGE_REF}")"
+ensure_new_release_tag "${BUILT_IMAGE_ID}" "${IMAGE_REF}"
+IMAGE_ID="${BUILT_IMAGE_ID}"
 
 METADATA_FILE="$(mktemp /tmp/cup-survey-merge-meta.XXXXXX.json)"
 ./deploy/merge-static-assets.sh "${IMAGE_REF}" "${IMAGE_ID}" "${METADATA_FILE}"
