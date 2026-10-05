@@ -1,0 +1,1095 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SurveyResponse {
+  id                      String   @id @default(uuid())
+  submissionId            String   @unique
+  payloadHash             String
+  createdAt               DateTime @default(now())
+
+  representativeName      String
+  roles                   String[] @default([])
+  rolesOther              String?
+  organizationName        String
+  city                    String
+  phone                   String
+  athletesCount           Int?
+
+  disciplines             String[] @default([])
+
+  acceptableVenues        String[] @default([])
+  preferredVenue          String
+  dayFormatPreference     String
+
+  acceptableMedals        String[] @default([])
+  preferredMedal          String   @default("")
+  acceptableBelts         String[] @default([])
+  preferredBelt           String   @default("")
+  acceptableCups            String[] @default([])
+  preferredCup              String   @default("")
+  acceptablePrizeCompositions String[] @default([])
+  acceptableAwardPackages String[] @default([])
+
+  priorities              String[] @default([])
+  prioritiesOther         String?
+
+  comment                 String?
+  userAgent               String?
+
+  @@index([createdAt])
+  @@index([organizationName])
+}
+
+model RateLimitEntry {
+  id        String   @id @default(uuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}
+
+enum RegistrationStatus {
+  SUBMITTED
+  AWAITING_PAYMENT
+  PAYMENT_REVIEW
+  PAID
+  PAYMENT_REJECTED
+  CANCELLED
+}
+
+enum PaymentProofStatus {
+  pending
+  approved
+  rejected
+}
+
+enum EntryPaymentStatus {
+  UNPAID
+  PAYMENT_REVIEW
+  PAID
+  ADMITTED_WITHOUT_PAYMENT
+  DEBT
+}
+
+model Club {
+  id              String   @id @default(uuid())
+  name            String
+  city            String
+  discountPercent Int?
+  createdAt       DateTime @default(now())
+
+  registrations TeamRegistration[]
+
+  @@unique([name, city])
+  @@index([name])
+}
+
+model CategoryDiscountRule {
+  id              String    @id @default(uuid())
+  label           String?
+  description     String?
+  discountPercent Int
+  discipline      String?
+  experienceLevel String?
+  ageDivisionId   String?
+  enabled         Boolean   @default(true)
+  showOnSite      Boolean   @default(false)
+  startsAt        DateTime?
+  endsAt          DateTime?
+  sortOrder       Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([enabled])
+  @@index([showOnSite])
+}
+
+model TeamRegistration {
+  id                  String             @id @default(uuid())
+  publicNumber        Int                @unique @default(autoincrement())
+  editToken           String             @unique @default(uuid())
+  clubId              String?
+  clubName            String
+  city                String
+  phone               String
+  email               String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  registrationStage   String
+  pricePerDiscipline  Int
+  totalAmount         Int
+  status              RegistrationStatus @default(AWAITING_PAYMENT)
+  priceHeldUntil      DateTime?
+  consentPersonalData Boolean
+  consentPublication  Boolean
+  adminComment        String?
+  userAgent           String?
+  editCodeHash        String?
+
+  club          Club?                      @relation(fields: [clubId], references: [id])
+  athletes      Athlete[]
+  paymentProofs PaymentProof[]
+  deviceAccess  RegistrationDeviceAccess[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([clubName])
+  @@index([clubId])
+}
+
+model RegistrationDeviceAccess {
+  id              String   @id @default(uuid())
+  registrationId  String
+  deviceTokenHash String
+  createdAt       DateTime @default(now())
+  lastUsedAt      DateTime @default(now())
+
+  registration TeamRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  @@unique([registrationId, deviceTokenHash])
+  @@index([deviceTokenHash])
+}
+
+model Athlete {
+  id             String   @id @default(uuid())
+  registrationId String
+  lastName       String
+  firstName      String
+  middleName     String?
+  birthDate      DateTime @db.Date
+  gender         String
+  weight         Float?
+  rank           String?
+
+  registration   TeamRegistration      @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  entries        AthleteEntry[]
+  mandateChecks  AthleteMandateCheck[]
+
+  @@index([registrationId])
+}
+
+model AthleteEntry {
+  id               String              @id @default(uuid())
+  athleteId        String
+  discipline       String
+  experienceLevel  String
+  price            Int
+  ageDivisionId    String?
+  weightCategoryId String?
+  paymentStatus    EntryPaymentStatus  @default(UNPAID)
+  paymentStage     String?
+  paidAt           DateTime?
+
+  athlete            Athlete             @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  paymentProofLinks  PaymentProofEntry[]
+
+  @@unique([athleteId, discipline, ageDivisionId, weightCategoryId, experienceLevel])
+  @@index([discipline])
+  @@index([paymentStatus])
+}
+
+model PaymentProof {
+  id                String             @id @default(uuid())
+  registrationId    String
+  filePath          String
+  mimeType          String
+  fileSize          Int
+  amount            Int?
+  registrationStage String?
+  uploadedAt        DateTime           @default(now())
+  status            PaymentProofStatus @default(pending)
+  reviewedAt        DateTime?
+  adminComment      String?
+
+  registration TeamRegistration    @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  entries      PaymentProofEntry[]
+
+  @@index([registrationId])
+}
+
+model PaymentProofEntry {
+  id             String @id @default(uuid())
+  paymentProofId String
+  entryId        String
+
+  paymentProof PaymentProof @relation(fields: [paymentProofId], references: [id], onDelete: Cascade)
+  entry        AthleteEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@unique([paymentProofId, entryId])
+  @@unique([entryId])
+  @@index([paymentProofId])
+}
+
+model RegistrationStage {
+  id                 String    @id
+  label              String
+  bannerTitle        String
+  pricePerDiscipline Int
+  startsAt           DateTime?
+  endsAt             DateTime
+  sortOrder          Int
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([sortOrder])
+}
+
+model RegistrationScheduleSetting {
+  id                   String    @id @default("default")
+  registrationClosesAt DateTime?
+  maxAthletes          Int?
+  showMaxAthletes      Boolean   @default(false)
+  updatedAt            DateTime  @updatedAt
+}
+
+enum BracketGenerationStatus {
+  ACTIVE
+}
+
+enum OlympicBronzeMode {
+  ONE
+  TWO
+}
+
+enum BracketCategoryStatus {
+  ACTIVE
+  INACTIVE
+  UNSUPPORTED
+}
+
+enum BracketCategoryStatusReason {
+  NO_FORMAT_RULE
+  EXCEEDS_MAX_PARTICIPANTS
+  SYSTEM_UNAVAILABLE
+}
+
+enum BracketMoveAction {
+  MOVE
+  RESET
+  CONSOLIDATION
+}
+
+enum AutoMatAssignMode {
+  BY_CATEGORY
+  BY_BOUT
+  BY_CATEGORY_TIME
+  BY_BOUT_TIME
+}
+
+model TournamentRegistrationState {
+  id       String @id @default("default")
+  revision BigInt @default(0)
+}
+
+enum SoloParticipantPointsMode {
+  STANDARD
+  EXCLUDE
+  CUSTOM
+}
+
+model TeamRankingSetting {
+  tournamentScopeId               String                    @id
+  firstPlacePoints                Int                       @default(5)
+  secondPlacePoints               Int                       @default(3)
+  thirdPlacePoints                Int                       @default(2)
+  soloParticipantPointsMode       SoloParticipantPointsMode @default(STANDARD)
+  soloParticipantFirstPlacePoints Int?
+  updatedAt                       DateTime                  @updatedAt
+}
+
+model AthleteRatingSetting {
+  tournamentScopeId             String   @id
+  publicEnabled                 Boolean  @default(false)
+  publicTopLimit                Int      @default(10)
+  firstPlacePoints              Int      @default(60)
+  secondPlacePoints             Int      @default(35)
+  thirdPlacePoints              Int      @default(15)
+  placeWithoutWinPercent          Int      @default(20)
+  pointsVictoryPoints           Int      @default(32)
+  clearAdvantageVictoryPoints   Int      @default(36)
+  submissionVictoryPoints       Int      @default(40)
+  chokeVictoryPoints            Int      @default(40)
+  injuryVictoryPoints           Int      @default(20)
+  dqVictoryPoints               Int      @default(10)
+  ageCoefficients               Json
+  updatedAt                     DateTime @updatedAt
+}
+
+model RankQualificationSetting {
+  tournamentScopeId String    @id
+  evskEventLevel    String    @default("regional_cup")
+  publicEnabled     Boolean   @default(true)
+  calculatedAt      DateTime?
+  updatedAt         DateTime  @updatedAt
+}
+
+model RankQualificationResult {
+  id                    String  @id @default(uuid())
+  tournamentScopeId     String
+  athleteId             String
+  discipline            String
+  achievedNormRank      String?
+  sourceBracketDetailId String?
+  displayPlacement      Int?
+  displayWins           Int?
+
+  sourceBracketDetail RankQualificationBracketDetail? @relation(fields: [sourceBracketDetailId], references: [id], onDelete: SetNull)
+
+  @@unique([tournamentScopeId, athleteId, discipline])
+  @@index([tournamentScopeId])
+}
+
+model RankQualificationBracketDetail {
+  id                String  @id @default(uuid())
+  tournamentScopeId String
+  athleteId         String
+  discipline        String
+  categoryKey       String
+  actualBracketId   String?
+  placement         Int?
+  wins              Int
+  achievedRank      String?
+  isAgeUp           Boolean @default(false)
+
+  sourceResults RankQualificationResult[]
+
+  @@unique([tournamentScopeId, athleteId, discipline, categoryKey])
+  @@index([tournamentScopeId])
+}
+
+model BracketPageSetting {
+  id                            String   @id @default("default")
+  publicEnabled                 Boolean  @default(false)
+  includePaid                   Boolean  @default(true)
+  includeUnpaid                 Boolean  @default(false)
+  consolidationEnabled          Boolean  @default(false)
+  consolidationPolicy           Json?
+  migrationPendingVisibleKeys   String[] @default([])
+  updatedAt                     DateTime @updatedAt
+}
+
+model BoutsPageSetting {
+  id                             String            @id @default("default")
+  publicEnabled                  Boolean           @default(false)
+  matCount                       Int               @default(1)
+  matsEnabled                    Boolean           @default(true)
+  scheduleVersion                Int               @default(0)
+  scheduleLegacyGap              Boolean           @default(false)
+  eventFinalized                 Boolean           @default(false)
+  autoMatAssignMode              AutoMatAssignMode @default(BY_CATEGORY)
+  autoMatByCategoryEnabled       Boolean           @default(true)
+  boutsStartTime                 String            @default("10:00")
+  matStartTimeOverrides          Json?
+  boutBreakMinutes               Int               @default(3)
+  ageDivisionDurationOverrides   Json?
+  pinAllFinalsToEnd              Boolean           @default(false)
+  competitionStageSettings       Json?
+  athleteParticipationSpacing    Json?
+  boutScheduleWaves              Json?
+  updatedAt                      DateTime          @updatedAt
+}
+
+model BoutScheduleExecution {
+  id                        String    @id @default(uuid())
+  boutId                    String    @unique
+  tournamentScopeId         String    @default("cup-2026")
+  actualStartAt             DateTime?
+  actualEndAt               DateTime?
+  officialStartedAt         DateTime?
+  officialEndedAt           DateTime?
+  mainEndedAt               DateTime?
+  extraEndedAt              DateTime?
+  activityCorrectionMode    Boolean   @default(false)
+  periodCorrectionMode      Boolean   @default(false)
+  attemptNumber             Int       @default(1)
+  boutPhase                 String    @default("scheduled")
+  clockState                String    @default("idle")
+  clockStartedAt            DateTime?
+  clockElapsedBeforeStartMs Int       @default(0)
+  currentPeriod             String    @default("main")
+  nextEventSequence         Int       @default(0)
+  liveRevision              Int       @default(0)
+  liveSnapshot              Json?
+  frozenScheduleFormatted   String?
+  frozenScheduleMatNumber   Int?
+  frozenSchedulePosition    Int?
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+}
+
+model ScheduleMutationLog {
+  mutationId               String    @id
+  status                   String
+  requestFingerprint       String
+  boutId                   String
+  command                  String
+  actorId                  String?
+  ownerToken               String?
+  leaseUntil               DateTime?
+  committedScheduleVersion Int?
+  responseJson             Json?
+  errorJson                Json?
+  createdAt                DateTime  @default(now())
+  completedAt              DateTime?
+
+  @@index([status, leaseUntil])
+  @@index([boutId, command])
+}
+
+model BoutResult {
+  id                            String               @id @default(cuid())
+  boutId                        String
+  resultVersion                 Int
+  isCurrent                     Boolean              @default(true)
+  tournamentScopeId             String               @default("cup-2026")
+  winnerEntryId                 String?
+  loserEntryId                  String?
+  victoryMethod                 String
+  decisionReason                String
+  decisionDetails               Json?
+  decidedInPeriod               String
+  mainRedScore                  Int
+  mainBlueScore                 Int
+  extraRedScore                 Int?
+  extraBlueScore                Int?
+  cornersSwapped                Boolean              @default(false)
+  officialEndedAt               DateTime
+  resultConfirmedAt             DateTime
+  boutElapsedMs                 Int?
+  fightOfficiallyStarted        Boolean              @default(false)
+  stoppageTrigger               String?
+  stoppageEventId               String?
+  confirmedBy                   String?
+  resultStatus                  String               @default("ACTIVE")
+  invalidatedAt                 DateTime?
+  invalidatedBy                 String?
+  invalidationReason            String?
+  invalidatedByCorrectionCaseId String?
+  supersededByResultId          String?
+  attemptNumber                 Int                  @default(1)
+  createdAt                     DateTime             @default(now())
+  updatedAt                     DateTime             @updatedAt
+  revisions                     BoutResultRevision[]
+
+  @@unique([boutId, resultVersion])
+  @@index([boutId, isCurrent])
+}
+
+model BoutResultRevision {
+  id                     String   @id @default(cuid())
+  boutResultId           String
+  resultCorrectionCaseId String?
+  previousJson           Json
+  newJson                Json
+  reason                 String?
+  editedBy               String?
+  createdAt              DateTime @default(now())
+  boutResult             BoutResult @relation(fields: [boutResultId], references: [id], onDelete: Cascade)
+
+  @@index([boutResultId])
+}
+
+model ResultCorrectionCase {
+  id                       String   @id @default(cuid())
+  tournamentScopeId        String   @default("cup-2026")
+  sourceBoutId             String
+  operationId              String
+  requestFingerprint       String
+  correctionMode           String
+  reason                   String
+  requestedBy              String
+  appliedBy                String?
+  appliedAt                DateTime?
+  status                   String   @default("APPLIED")
+  previousSourceResultJson Json
+  newSourceResultJson      Json
+  invalidatedBoutIds       Json
+  affectedBoutIds          Json
+  dependencySnapshot       Json?
+  errorDetails             Json?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@unique([sourceBoutId, operationId])
+  @@index([tournamentScopeId, createdAt])
+}
+
+model BoutEvent {
+  id                String    @id @default(cuid())
+  boutId            String
+  tournamentScopeId String    @default("cup-2026")
+  clientEventId     String
+  sequence          Int
+  eventType         String
+  entryId           String?
+  cornerAtEvent     String?
+  points            Int?
+  episodeId         String?
+  boutElapsedMs     Int?
+  period            String    @default("main")
+  attemptNumber     Int       @default(1)
+  payload           Json?
+  eventStatus       String    @default("COMMITTED")
+  eventHash         String?
+  boutSessionId     String?
+  undoneAt          DateTime?
+  createdAt         DateTime  @default(now())
+
+  @@unique([boutId, clientEventId])
+  @@unique([boutId, sequence])
+  @@index([boutId, createdAt])
+  @@index([boutId, entryId])
+  @@index([boutSessionId, sequence])
+  @@index([boutSessionId, eventStatus])
+}
+
+model BoutSessionOwnership {
+  id               String    @id @default(cuid())
+  boutId           String
+  boutSessionId    String    @unique
+  clientSessionId  String
+  ownershipEpoch   Int       @default(1)
+  sessionStatus    String    @default("ACTIVE")
+  leasedAt         DateTime  @default(now())
+  releasedAt       DateTime?
+  heartbeatAt      DateTime?
+  staleAt          DateTime?
+  clockStartedAt   DateTime?
+  leasedByUserId   String?
+  expectedSequenceNo Int     @default(1)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([boutId, releasedAt])
+}
+
+model BoutSessionAcquireRequest {
+  id               String   @id @default(cuid())
+  boutId           String
+  acquireRequestId String
+  boutSessionId    String
+  createdAt        DateTime @default(now())
+
+  @@unique([boutId, acquireRequestId])
+  @@index([boutSessionId])
+}
+
+model BoutSessionCommitAck {
+  boutSessionId String   @id
+  packageHash   String
+  committedAt   DateTime @default(now())
+}
+
+model BoutOwnershipTakeoverLog {
+  id                  String   @id @default(cuid())
+  boutSessionId       String
+  oldClientSessionId  String
+  newClientSessionId  String
+  oldEpoch            Int
+  newEpoch            Int
+  adminId             String
+  reason              String
+  suffixDisposition   String
+  createdAt           DateTime @default(now())
+
+  @@index([boutSessionId, createdAt])
+}
+
+model MatControlAuditEntry {
+  id                String   @id @default(cuid())
+  tournamentScopeId String   @default("cup-2026")
+  boutId            String
+  issueCode         String
+  issueMessage      String
+  victoryMethod     String?
+  detectedAt        DateTime @default(now())
+  resolvedAt        DateTime?
+  resolvedBy        String?
+  resolutionNote    String?
+  metadata          Json?
+
+  @@index([tournamentScopeId, detectedAt])
+  @@index([boutId, issueCode])
+}
+
+model BoutBracketUnlockOutbox {
+  id            String    @id @default(cuid())
+  boutId        String
+  boutSessionId String    @unique
+  status        String    @default("PENDING")
+  processedAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([boutId])
+}
+
+model MatControlSession {
+  tournamentScopeId     String    @default("cup-2026")
+  matIndex              Int
+  activeBoutId          String?
+  /** When set, mat control shows this completed bout for result correction. */
+  correctionFocusBoutId String?
+  revision              Int       @default(0)
+  holderToken       String?
+  holderSince       DateTime?
+  heartbeatAt       DateTime?
+  expiresAt         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@id([tournamentScopeId, matIndex])
+}
+
+model BoutControlCommand {
+  id                 String   @id @default(cuid())
+  boutId             String
+  tournamentScopeId  String   @default("cup-2026")
+  operationId        String
+  commandType        String
+  requestFingerprint String
+  responseJson       Json
+  createdEventIds    Json
+  createdAt          DateTime @default(now())
+
+  @@unique([boutId, operationId])
+  @@index([boutId, createdAt])
+}
+
+model AthleteRestState {
+  tournamentScopeId   String    @default("cup-2026")
+  entryId             String
+  restUntil           DateTime
+  restOverrideUntil   DateTime?
+  sourceBoutId        String?
+  sourceAttemptNumber Int?
+  invalidatedAt       DateTime?
+  updatedAt           DateTime  @updatedAt
+
+  @@id([tournamentScopeId, entryId])
+}
+
+model MatScheduleRuntime {
+  matIndex          Int       @id
+  manualNotBeforeAt DateTime?
+  updatedAt         DateTime  @updatedAt
+}
+
+model BracketFormatRule {
+  id                String             @id @default(uuid())
+  minParticipants   Int
+  maxParticipants   Int
+  systemId          String
+  defaultBronzeMode OlympicBronzeMode?
+  allowedSystemIds  String[]
+  sortOrder         Int                @default(0)
+  enabled           Boolean            @default(true)
+  updatedAt         DateTime           @updatedAt
+
+  @@index([enabled, sortOrder])
+}
+
+model BracketGeneration {
+  id                String                  @id @default(uuid())
+  status            BracketGenerationStatus
+  singletonKey      String                  @unique @default("live")
+  baseSeed          String
+  sourceRevision    BigInt?
+  sourceFingerprint String?
+  version           Int                     @default(1)
+  generatedAt       DateTime                @default(now())
+  publishedAt       DateTime?
+  categories        BracketCategoryDraw[]
+  autoSyncEvents    BracketAutoSyncEvent[]
+
+  @@index([status, publishedAt])
+}
+
+model BracketBackup {
+  id            String   @id @default(uuid())
+  label         String?
+  schemaVersion Int
+  snapshot      Json
+  createdAt     DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model BracketCutoverCheckpoint {
+  id        String   @id @default("default")
+  phase     String
+  payload   Json?
+  updatedAt DateTime @updatedAt
+}
+
+model BracketCategoryDraw {
+  id                   String                      @id @default(uuid())
+  generationId         String
+  categoryKey          String
+  discipline           String
+  title                String
+  status               BracketCategoryStatus       @default(ACTIVE)
+  statusReason         BracketCategoryStatusReason?
+  autoSystemId         String?
+  systemOverride       String?
+  autoBronzeMode       OlympicBronzeMode?
+  bronzeModeOverride   OlympicBronzeMode?
+  systemVersion        Int?
+  drawSeed             String
+  redrawRevision       Int                         @default(0)
+  sourceFingerprint    String?
+  seedingFingerprint   String?
+  drawPolicyId         String?
+  drawPolicyVersion    Int?
+  drawInputFingerprint String?
+  publishedStructureJson Json?
+  matIndex             Int?
+  competitionStage     Int                         @default(1)
+  updatedAt            DateTime                    @updatedAt
+
+  generation       BracketGeneration         @relation(fields: [generationId], references: [id], onDelete: Cascade)
+  participants     BracketDrawParticipant[]
+  publicationState BracketPublicationState?
+
+  @@unique([generationId, categoryKey])
+}
+
+model BracketPublicationState {
+  id                   String   @id @default(uuid())
+  categoryKey          String   @unique
+  visible              Boolean  @default(false)
+  boutsReleased        Boolean  @default(false)
+  boutMatAssignments   Json?
+  matCountAtRelease    Int?
+  scheduleOverrides    Json?
+  publishedDrawId      String   @unique
+  updatedAt            DateTime @updatedAt
+
+  publishedDraw BracketCategoryDraw @relation(fields: [publishedDrawId], references: [id])
+}
+
+model BracketAutoSyncEvent {
+  id           String   @id @default(uuid())
+  operationId  String
+  generationId String
+  categoryKey  String
+  revision     BigInt?
+  success      Boolean
+  errorMessage String?
+  createdAt    DateTime @default(now())
+
+  generation BracketGeneration @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  @@index([generationId, categoryKey, createdAt])
+  @@index([categoryKey, createdAt])
+  @@index([operationId])
+}
+
+model BracketDrawParticipant {
+  id                   String  @id @default(uuid())
+  drawId               String
+  entryId              String
+  seedPosition         Int
+  seedLocked           Boolean @default(false)
+  snapshotDisplayName  String?
+  snapshotClubName     String?
+  snapshotCity         String?
+  snapshotPublicNumber Int?
+
+  draw BracketCategoryDraw @relation(fields: [drawId], references: [id], onDelete: Cascade)
+
+  @@unique([drawId, entryId])
+  @@unique([drawId, seedPosition])
+}
+
+model BracketEntryPlacement {
+  entryId      String   @id
+  categoryKey  String
+  isManualMove Boolean  @default(false)
+  movedAt      DateTime?
+  updatedAt    DateTime @updatedAt
+}
+
+enum AwardQueueGroup {
+  NORMAL
+  DEFERRED
+}
+
+enum AwardCeremonyStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SUSPENDED
+}
+
+enum AwardPlacementStatus {
+  PENDING
+  AWARDED
+  NOT_AWARDED
+}
+
+model AwardsPageSetting {
+  tournamentScopeId       String   @id
+  publicEnabled           Boolean  @default(false)
+  ceremonyStartTime       String   @default("11:00")
+  ceremonyDurationMinutes Int      @default(3)
+  ceremonyBreakMinutes    Int      @default(0)
+  queueRevision           Int      @default(0)
+  ceremonySequenceCounter Int      @default(0)
+  updatedAt               DateTime @updatedAt
+}
+
+model AwardCeremonyQueue {
+  id                       String              @id @default(cuid())
+  tournamentScopeId        String
+  categoryKey              String
+  status                   AwardCeremonyStatus @default(PENDING)
+  needsReview              Boolean             @default(false)
+  queueGroup               AwardQueueGroup     @default(NORMAL)
+  queueOrder               Int
+  ceremonySequence         Int?
+  completedAtCategory      DateTime
+  ceremonyCompletedAt      DateTime?
+  actualStartAt            DateTime?
+  actualEndAt              DateTime?
+  scheduledStartAtSnapshot DateTime?
+  durationMinutesSnapshot  Int?
+  breakMinutesSnapshot     Int?
+  adminComment             String?
+  publicComment            String?
+  conflictReason           String?
+  revision                 Int                 @default(0)
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+  placements               AwardCeremonyPlacement[]
+
+  @@unique([tournamentScopeId, categoryKey])
+  @@index([tournamentScopeId, ceremonySequence])
+  @@index([tournamentScopeId, status, queueGroup, queueOrder])
+  @@index([tournamentScopeId, needsReview])
+}
+
+model AwardCeremonyPlacement {
+  id             String               @id @default(cuid())
+  queueId        String
+  queue          AwardCeremonyQueue   @relation(fields: [queueId], references: [id], onDelete: Cascade)
+  entryId        String
+  placement      Int
+  placementIndex Int
+  status         AwardPlacementStatus @default(PENDING)
+  resolvedAt     DateTime?
+  adminComment   String?
+  publicComment  String?
+  lastName       String
+  firstName      String
+  middleName     String?
+  clubName       String
+
+  @@unique([queueId, entryId])
+  @@index([queueId, placement, placementIndex])
+}
+
+model AwardCeremonyOperation {
+  id                String   @id @default(cuid())
+  tournamentScopeId String
+  operationId       String
+  requestHash       String
+  responsePayload   Json?
+  createdAt         DateTime @default(now())
+
+  @@unique([tournamentScopeId, operationId])
+  @@index([tournamentScopeId, createdAt])
+}
+
+model BracketMoveAudit {
+  id              String            @id @default(uuid())
+  entryId         String
+  action          BracketMoveAction
+  fromCategoryKey String
+  toCategoryKey   String
+  movedBy         String?
+  metadata        Json?
+  movedAt         DateTime          @default(now())
+}
+
+enum AnnouncerEventType {
+  BOUT_CALL
+  BOUT_PREPARE
+  BOUT_RESULT
+  AWARD_CALL
+  AWARD_PREPARE
+}
+
+enum AnnouncerEventStatus {
+  QUEUED
+  GENERATING
+  READY
+  PLAYING
+  PLAYED
+  SKIPPED
+  EXPIRED
+  FAILED
+}
+
+enum AnnouncerNameFormat {
+  LAST_FIRST
+  LAST_FIRST_MIDDLE
+}
+
+enum AnnouncerMode {
+  AUTO
+  MANUAL
+  PAUSED
+}
+
+model AnnouncerSetting {
+  tournamentScopeId     String        @id
+  enabled               Boolean       @default(false)
+  mode                  AnnouncerMode @default(AUTO)
+  primaryProvider       String        @default("yandex")
+  primaryVoiceId        String?
+  fallbackProvider1     String?
+  fallbackVoiceId1      String?
+  fallbackProvider2     String?
+  fallbackVoiceId2      String?
+  speechRate            Float         @default(1)
+  announcementGapMs     Int           @default(3000)
+  cueToSpeechGapMs      Int           @default(700)
+  nextPlaybackAllowedAt DateTime?
+  boutCueSoundId        String        @default("universfield-032")
+  awardCueSoundId       String        @default("chime-01")
+  cueVolume             Float         @default(0.7)
+  updatedAt             DateTime      @updatedAt
+}
+
+model AnnouncerRule {
+  id                String              @id @default(cuid())
+  tournamentScopeId String
+  eventType         AnnouncerEventType
+  enabled           Boolean             @default(true)
+  priority          Int
+  nameFormat        AnnouncerNameFormat   @default(LAST_FIRST)
+  includeMat        Boolean             @default(true)
+  includeCategory   Boolean             @default(true)
+  includeCorner     Boolean             @default(false)
+  includeClub       Boolean             @default(false)
+  includeCity       Boolean             @default(false)
+  includeMethod     Boolean             @default(false)
+  includePlacement  Boolean             @default(false)
+  includeAge        Boolean             @default(true)
+  includeWeight     Boolean             @default(true)
+  includeCueSound   Boolean             @default(false)
+  cueSoundId        String?
+  ttlSeconds        Int
+  ttsProvider       String?
+  ttsVoiceId        String?
+
+  @@unique([tournamentScopeId, eventType])
+}
+
+model AnnouncerEvent {
+  id                   String               @id @default(cuid())
+  tournamentScopeId    String
+  type                 AnnouncerEventType
+  priority             Int
+  sourceId             String?
+  dedupeKey            String
+  payload              Json
+  textSnapshot         String?
+  audioCacheKey        String?
+  audioDurationMs      Int?
+  status               AnnouncerEventStatus @default(QUEUED)
+  expiresAt            DateTime?
+  createdAt            DateTime             @default(now())
+  playedAt             DateTime?
+  failureReason        String?
+  generationToken        String?
+  generationStartedAt    DateTime?
+  generationLeaseUntil   DateTime?
+  generationTtsSignature String?
+  ttsProviderUsed        String?
+  ttsVoiceIdUsed         String?
+  claimedAt              DateTime?
+  claimToken             String?
+  leaseUntil             DateTime?
+
+  @@unique([tournamentScopeId, dedupeKey])
+  @@index([tournamentScopeId, status, priority, createdAt])
+  @@index([tournamentScopeId, status, generationLeaseUntil])
+  @@index([tournamentScopeId, status, leaseUntil])
+}
+
+model AnnouncerPositionState {
+  tournamentScopeId String
+  scopeKey          String
+  currentPositionId String?
+  positionEpoch     Int      @default(0)
+  updatedAt         DateTime @updatedAt
+
+  @@id([tournamentScopeId, scopeKey])
+}
+
+model AnnouncerAudioCache {
+  cacheKey   String   @id
+  provider   String
+  voiceId    String
+  speechRate Float
+  textHash   String
+  mimeType   String
+  filePath   String
+  createdAt  DateTime @default(now())
+}
+
+model AnnouncerPronunciation {
+  id                String   @id @default(cuid())
+  tournamentScopeId String
+  sourceText        String
+  spokenText        String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([tournamentScopeId, sourceText])
+}
+
+enum MandateCheckStatus {
+  UNCHECKED
+  VERIFIED
+  ISSUE
+}
+
+enum WeightCheckMode {
+  AUTO
+  MANUAL
+  MANUAL_ISSUE
+}
+
+model AthleteMandateCheck {
+  id                              String               @id @default(cuid())
+  tournamentScopeId               String
+  athleteId                       String
+
+  medicalStatus                   MandateCheckStatus   @default(UNCHECKED)
+  insuranceStatus                 MandateCheckStatus   @default(UNCHECKED)
+  documentsStatus                 MandateCheckStatus   @default(UNCHECKED)
+
+  weightCheckMode                 WeightCheckMode?
+  actualWeightKg                  Decimal?             @db.Decimal(6, 2)
+  manualWeightVerified            Boolean              @default(false)
+  manualWeightCategoryFingerprint String?
+
+  comment                         String?
+
+  updatedByUserId                 String?
+  createdAt                       DateTime             @default(now())
+  updatedAt                       DateTime             @updatedAt
+
+  athlete Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentScopeId, athleteId])
+  @@index([tournamentScopeId])
+}

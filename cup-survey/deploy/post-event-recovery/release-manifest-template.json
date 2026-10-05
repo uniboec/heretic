@@ -1,0 +1,11 @@
+{
+  "release_id": "release-YYYYMMDDTHHMMSSZ",
+  "git_sha": "local-YYYYMMDDTHHMMSSZ",
+  "app_image_id": "sha256:…",
+  "migrate_image_id": "sha256:…",
+  "artifact_path": "cup-survey-images.tar.gz",
+  "artifact_sha256": "…",
+  "built_at": "ISO-8601",
+  "drill_passed": true,
+  "cup_disable_lazy_reconcile": "1"
+}

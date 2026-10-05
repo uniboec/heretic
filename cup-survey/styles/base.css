@@ -1,0 +1,91 @@
+body {
+  background-color: var(--color-background);
+  background-image:
+    radial-gradient(ellipse 90% 60% at 50% -15%, rgb(252 214 218 / 0.45), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 100% 0%, rgb(226 232 240 / 0.5), transparent 50%),
+    radial-gradient(ellipse 40% 35% at 0% 100%, rgb(241 245 249 / 0.8), transparent 45%);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.club-selector-dropdown:not(.is-open) {
+  pointer-events: none;
+}
+
+.price-value {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.collapse-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  overflow: hidden;
+  transition:
+    grid-template-rows 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease;
+}
+
+.collapse-panel.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.collapse-panel-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collapse-panel,
+  .club-selector-dropdown,
+  .event-participants-filters,
+  .event-participants-list-display,
+  .event-mobile-menu,
+  .event-mobile-menu-backdrop,
+  .event-mobile-menu-panel,
+  .event-faq-answer-wrap,
+  .event-participants-group-chevron,
+  .reg-collapse-chevron,
+  [data-modal-overlay],
+  [data-modal-panel],
+  .animate-\[app-modal-content-in_280ms_cubic-bezier\(0\.22\,1\,0\.36\,1\)_both\],
+  .animate-participants-view-in,
+  .animate-ui-stagger-in,
+  .animate-ui-resolve-pulse,
+  .animate-ui-resolve-muted,
+  .animate-ui-resolve-glow,
+  .animate-ui-resolve-glow-muted,
+  .animate-ui-item-exit {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .collapse-panel.is-open,
+  .club-selector-dropdown.is-open,
+  .event-participants-list-display,
+  .event-mobile-menu.is-open,
+  .event-mobile-menu.is-open .event-mobile-menu-backdrop,
+  .event-mobile-menu.is-open .event-mobile-menu-panel,
+  .event-faq-item[open] .event-faq-answer-wrap,
+  [data-modal-overlay][data-open],
+  [data-modal-panel][data-open] {
+    opacity: 1;
+    transform: none;
+    grid-template-rows: 1fr;
+  }
+}
+
+@keyframes success-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.success-icon {
+  animation: success-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}

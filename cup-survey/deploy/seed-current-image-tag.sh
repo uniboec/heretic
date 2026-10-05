@@ -2,12 +2,13 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DEPLOY_SCRIPT_DIR="${SCRIPT_DIR}"
 # shellcheck source=common.sh
 source "${SCRIPT_DIR}/common.sh"
 cup_survey_cd
 
-RUNNING_CID="$(docker compose -f "${COMPOSE_FILE}" ps -q app | head -1)"
-[[ -n "${RUNNING_CID}" ]] || { echo "seed aborted: no running app"; exit 1; }
+RUNNING_CID="$(running_active_app_cid)"
+[[ -n "${RUNNING_CID}" ]] || { echo "seed aborted: no running active app"; exit 1; }
 
 RUNNING_IMAGE_ID="$(docker inspect "${RUNNING_CID}" --format '{{.Image}}')"
 
@@ -31,17 +32,20 @@ if [[ ! -f "${MANIFEST_PATH}" ]]; then
   exit 1
 fi
 
-"${PYTHON}" - "${MANIFEST_PATH}" "${RUNNING_IMAGE_ID}" "${CURRENT_TAG_IMAGE_ID}" <<'PY'
+export MANIFEST_PATH RUNNING_IMAGE_ID CURRENT_TAG_IMAGE_ID DEPLOY_SCRIPT_DIR
+"${PYTHON}" - <<'PY'
+import os
 import sys
 
-sys.path.insert(0, "/opt/cup-survey/deploy")
+sys.path.insert(0, os.environ["DEPLOY_SCRIPT_DIR"])
 from static_manifest import get_current_deploy, load_manifest
 
-manifest_path, running, current_tag = sys.argv[1:4]
-manifest = load_manifest(manifest_path)
+manifest = load_manifest(os.environ["MANIFEST_PATH"])
 current = get_current_deploy(manifest)
 if current is None:
     sys.exit("manifest has no current deploy")
+running = os.environ["RUNNING_IMAGE_ID"]
+current_tag = os.environ["CURRENT_TAG_IMAGE_ID"]
 if current["image_id"] != running or running != current_tag:
     sys.exit(
         "three-way mismatch after seed:\n"

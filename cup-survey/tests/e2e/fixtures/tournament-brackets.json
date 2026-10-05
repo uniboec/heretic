@@ -1,0 +1,36 @@
+{
+  "published": true,
+  "publishedAt": "2026-09-20T10:00:00.000Z",
+  "categories": [
+    {
+      "categoryKey": "tactic_control:fse_12_13:m_52_55:novice",
+      "discipline": "tactic_control",
+      "title": "12–13 лет, 52–55 кг, новички",
+      "systemId": "champion",
+      "systemVersion": 1,
+      "bronzeMode": null,
+      "participants": [
+        {
+          "entryId": "entry-visual-001",
+          "seedPosition": 1,
+          "displayName": "Иванов Иван Сергеевич",
+          "clubName": "Клуб «Универсальные бойцы»",
+          "city": "Первоуральск"
+        }
+      ],
+      "structure": {
+        "systemId": "champion",
+        "systemVersion": 1,
+        "rounds": [],
+        "champion": {
+          "entryId": "entry-visual-001",
+          "displayName": "Иванов Иван Сергеевич",
+          "clubName": "Клуб «Универсальные бойцы»",
+          "city": "Первоуральск",
+          "publicNumber": 1
+        },
+        "championLabel": "Участник категории"
+      }
+    }
+  ]
+}

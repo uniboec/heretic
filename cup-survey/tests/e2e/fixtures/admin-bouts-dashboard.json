@@ -1,0 +1,101 @@
+{
+  "generatedAt": "2026-09-23T07:00:00.000Z",
+  "settings": {
+    "publicEnabled": true,
+    "matCount": 2,
+    "autoMatAssignMode": "BY_CATEGORY",
+    "autoMatByCategoryEnabled": false,
+    "boutsStartTime": "10:00",
+    "matStartTimeOverrides": {},
+    "boutBreakMinutes": 3,
+    "ageDivisionDurationOverrides": {},
+    "pinAllFinalsToEnd": false,
+    "competitionStageSettings": {
+      "breaksAfterStageMinutes": {},
+      "notBeforeStartTimes": {}
+    }
+  },
+  "scheduleOverrides": {},
+  "stageSummaries": [],
+  "published": true,
+  "publishedAt": "2026-09-23T07:00:00.000Z",
+  "groupingWarnings": [],
+  "mats": [
+    {
+      "matIndex": 1,
+      "configuredStartTime": "10:00",
+      "scheduledEndAt": "2026-09-23T09:00:00.000Z",
+      "estimatedEndAt": "2026-09-23T09:00:00.000Z",
+      "bouts": [
+        {
+          "id": "bout-m1-1",
+          "matchNumber": 1,
+          "matIndex": 1,
+          "categoryKey": "tactic_control:novice:m_boys_1:w1",
+          "categoryTitle": "Мальчики 1 разряд",
+          "discipline": "tactic_control",
+          "sideA": { "kind": "athlete", "entryId": "e1", "displayName": "Иванов И.", "clubName": "Клуб А", "city": "Екб", "publicNumber": 1 },
+          "sideB": { "kind": "athlete", "entryId": "e2", "displayName": "Петров П.", "clubName": "Клуб Б", "city": "Екб", "publicNumber": 2 },
+          "timing": {
+            "durationMinutes": 3,
+            "scheduledStartAt": "2026-09-23T05:00:00.000Z",
+            "scheduledEndAt": "2026-09-23T05:03:00.000Z",
+            "estimatedStartAt": "2026-09-23T05:00:00.000Z",
+            "estimatedEndAt": "2026-09-23T05:03:00.000Z",
+            "status": "upcoming",
+            "delayMinutes": 0,
+            "isDelayed": false
+          }
+        },
+        {
+          "id": "bout-m1-2",
+          "matchNumber": 2,
+          "matIndex": 1,
+          "categoryKey": "tactic_control:novice:m_girls_1:w1",
+          "categoryTitle": "Девочки 1 разряд",
+          "discipline": "tactic_control",
+          "sideA": { "kind": "athlete", "entryId": "e3", "displayName": "Сидорова С.", "clubName": "Клуб В", "city": "Екб", "publicNumber": 3 },
+          "sideB": { "kind": "athlete", "entryId": "e4", "displayName": "Козлова К.", "clubName": "Клуб Г", "city": "Екб", "publicNumber": 4 },
+          "timing": {
+            "durationMinutes": 3,
+            "scheduledStartAt": "2026-09-23T05:06:00.000Z",
+            "scheduledEndAt": "2026-09-23T05:09:00.000Z",
+            "estimatedStartAt": "2026-09-23T05:06:00.000Z",
+            "estimatedEndAt": "2026-09-23T05:09:00.000Z",
+            "status": "upcoming",
+            "delayMinutes": 0,
+            "isDelayed": false
+          }
+        }
+      ]
+    },
+    {
+      "matIndex": 2,
+      "configuredStartTime": "10:00",
+      "scheduledEndAt": "2026-09-23T09:00:00.000Z",
+      "estimatedEndAt": "2026-09-23T09:00:00.000Z",
+      "bouts": [
+        {
+          "id": "bout-m2-1",
+          "matchNumber": 3,
+          "matIndex": 2,
+          "categoryKey": "tactic_control:novice:m_boys_2:w1",
+          "categoryTitle": "Мальчики 2 разряд",
+          "discipline": "tactic_control",
+          "sideA": { "kind": "athlete", "entryId": "e5", "displayName": "Смирнов С.", "clubName": "Клуб А", "city": "Екб", "publicNumber": 5 },
+          "sideB": { "kind": "athlete", "entryId": "e6", "displayName": "Волков В.", "clubName": "Клуб Б", "city": "Екб", "publicNumber": 6 },
+          "timing": {
+            "durationMinutes": 3,
+            "scheduledStartAt": "2026-09-23T05:00:00.000Z",
+            "scheduledEndAt": "2026-09-23T05:03:00.000Z",
+            "estimatedStartAt": "2026-09-23T05:00:00.000Z",
+            "estimatedEndAt": "2026-09-23T05:03:00.000Z",
+            "status": "upcoming",
+            "delayMinutes": 0,
+            "isDelayed": false
+          }
+        }
+      ]
+    }
+  ]
+}

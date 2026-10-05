@@ -29,7 +29,7 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, "/opt/cup-survey/deploy")
+sys.path.insert(0, os.environ.get("DEPLOY_SCRIPT_DIR", "/opt/cup-survey/deploy"))
 from static_manifest import (
     ManifestCorruptError,
     ManifestMissingError,

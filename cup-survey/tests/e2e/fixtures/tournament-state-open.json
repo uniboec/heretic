@@ -1,0 +1,63 @@
+{
+  "now": "2026-09-23T07:00:00.000Z",
+  "closed": false,
+  "registrationClosesAt": "2026-09-25T12:00:00.000Z",
+  "stage": {
+    "id": "regular",
+    "label": "Основная регистрация",
+    "bannerTitle": "Основная регистрация",
+    "bannerDetail": "до 24 сентября",
+    "endsAt": "2026-09-24T18:59:59.000Z",
+    "pricePerDiscipline": 1800,
+    "countdown": { "days": 1, "hours": 11, "minutes": 59, "seconds": 59, "totalMs": 140399000 }
+  },
+  "closeCountdown": { "days": 2, "hours": 5, "minutes": 0, "seconds": 0, "totalMs": 190800000 },
+  "tournament": {
+    "title": "Кубок Свердловской области по смешанным единоборствам",
+    "subtitle": "2026",
+    "eventDate": "2026-10-03",
+    "eventDateLabel": "3 октября 2026",
+    "organizer": "РФСОО «Федерация Смешанных Единоборств Свердловской области»",
+    "disciplinesLabel": "Tactic-Control • Close-Control",
+    "contacts": {
+      "phone": "8 (343) 22-64-222",
+      "email": "mmaural@yandex.ru",
+      "vk": "https://vk.me/mmaural",
+      "vkLabel": "ВКонтакте",
+      "site": "cup26.mma66.ru"
+    },
+    "venue": {
+      "name": "СК «Универсальные бойцы»",
+      "city": "Первоуральск",
+      "region": "Свердловская область",
+      "mats": 2,
+      "address": "",
+      "mapUrl": "",
+      "mapEmbedUrl": ""
+    },
+    "poster": {
+      "src": "/images/cup-2026-poster.png",
+      "width": 682,
+      "height": 1024,
+      "alt": "Кубок Свердловской области по смешанным единоборствам — 3 октября 2026, Первоуральск"
+    }
+  },
+  "disciplines": [
+    { "id": "tactic_control", "label": "Tactic-Control", "labelRu": "Тактик Контрол" },
+    { "id": "close_control", "label": "Close-Control", "labelRu": "Клоус Контрол" }
+  ],
+  "stages": [
+    { "id": "early", "label": "Ранняя регистрация", "period": "до 21 сентября", "pricePerDiscipline": 1500 },
+    { "id": "regular", "label": "Основная регистрация", "period": "22–24 сентября", "pricePerDiscipline": 1800 },
+    { "id": "late", "label": "Поздняя регистрация", "period": "25 сентября, до 17:00", "pricePerDiscipline": 2000 }
+  ],
+  "stats": { "athletes": 42, "clubs": 8, "tacticControl": 25, "closeControl": 17, "entries": 48 },
+  "discountRules": [],
+  "publicDiscounts": [],
+  "maxAthletes": null,
+  "bracketsPublicEnabled": true,
+  "bracketsPublished": true,
+  "boutsPublicEnabled": false,
+  "boutsPublished": false,
+  "paymentConfigured": true
+}

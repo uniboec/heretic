@@ -1,0 +1,7 @@
+{
+  "settings": {
+    "matCount": 2,
+    "autoMatAssignMode": "BY_CATEGORY",
+    "autoMatByCategoryEnabled": false
+  }
+}

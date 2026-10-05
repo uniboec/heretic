@@ -1,0 +1,57 @@
+name: cup-survey
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cup_survey}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_DB: ${POSTGRES_DB:-cup_survey}
+    volumes:
+      - cup_survey_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-cup_survey}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build:
+      context: .
+      target: deps
+    restart: 'no'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cup_survey}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-cup_survey}?schema=public
+    command: >
+      sh -c "npx prisma migrate deploy --schema=./prisma/schema.prisma"
+
+  app:
+    image: cup-survey-app:current
+    build:
+      context: .
+      target: runner
+      args:
+        RELEASE_ID: ${CUP_RELEASE_ID:-legacy}
+        GIT_SHA: ${CUP_GIT_SHA:-local}
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cup_survey}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-cup_survey}?schema=public
+      PAYMENT_PROOFS_DIR: /app/data/payment-proofs
+      ANNOUNCER_CACHE_DIR: /app/data/announcer-cache
+      CUP_DISABLE_LAZY_RECONCILE: ${CUP_DISABLE_LAZY_RECONCILE:-0}
+    ports:
+      - '${APP_PORT:-3001}:3000'
+    volumes:
+      - /opt/cup-survey-data/payment-proofs:/app/data/payment-proofs
+      - /opt/cup-survey-data/announcer-cache:/app/data/announcer-cache
+
+volumes:
+  cup_survey_pg:

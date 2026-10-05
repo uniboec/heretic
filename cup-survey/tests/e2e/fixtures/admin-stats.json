@@ -1,0 +1,39 @@
+{
+  "totalResponses": 3,
+  "totalKnownAthletes": 42,
+  "teamsWithAthleteData": 2,
+  "venueStats": [
+    {
+      "id": "venue_universal",
+      "label": "СК «Универсальные бойцы»",
+      "teamsCount": 2,
+      "teamsPercent": 66.7,
+      "teamsWithAthleteData": 2,
+      "athletesCount": 30,
+      "athletesPercent": 71.4
+    }
+  ],
+  "preferredVenueStats": [
+    {
+      "id": "venue_universal",
+      "label": "СК «Универсальные бойцы»",
+      "teamsCount": 2,
+      "teamsPercent": 66.7,
+      "teamsWithAthleteData": 2,
+      "athletesCount": 30,
+      "athletesPercent": 71.4
+    }
+  ],
+  "preferredMedalStats": [],
+  "preferredBeltStats": [],
+  "preferredCupStats": [],
+  "dayFormatStats": [],
+  "disciplineStats": [],
+  "prizeCompositionStats": [],
+  "awardPackageStats": [],
+  "primaryAwardPackageStats": [],
+  "entryFeeStats": [],
+  "scenarioMatrix": [],
+  "possibleDuplicates": [],
+  "athleteDataNote": "Данные по числу спортсменов указаны не во всех анкетах."
+}

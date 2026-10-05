@@ -2,19 +2,23 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DEPLOY_SCRIPT_DIR="${SCRIPT_DIR}"
 # shellcheck source=common.sh
 source "${SCRIPT_DIR}/common.sh"
 cup_survey_cd
 
-FREE_PCT="$(df -P / | awk 'NR==2 {gsub(/%/,"",$5); print 100-$5}')"
-if awk "BEGIN {exit !(${FREE_PCT} < 15)}"; then
-  echo "bootstrap aborted: free disk ${FREE_PCT}% < 15%" >&2
-  exit 1
+if command -v df >/dev/null 2>&1; then
+  avail_kb="$(df -Pk / | awk 'NR==2 {print $4}')"
+  required_kb=$((DISK_GATE_GB * 1024 * 1024))
+  if [[ -n "${avail_kb}" && "${avail_kb}" -lt "${required_kb}" ]]; then
+    echo "bootstrap aborted: disk free ${avail_kb}KB < ${DISK_GATE_GB}GB gate" >&2
+    exit 1
+  fi
 fi
 
-RUNNING_CID="$(docker compose -f "${COMPOSE_FILE}" ps -q app | head -1)"
+RUNNING_CID="$(running_active_app_cid)"
 if [[ -z "${RUNNING_CID}" ]]; then
-  echo "bootstrap aborted: no running cup-survey-app container" >&2
+  echo "bootstrap aborted: no running active app container" >&2
   exit 1
 fi
 
@@ -78,7 +82,7 @@ for rel in "${REL_PATHS[@]}"; do
   [[ -f "${SHARED_STATIC_ROOT}/${rel}" ]] || { echo "missing after copy: ${rel}" >&2; exit 1; }
 done
 
-export MANIFEST_PATH DEPLOY_ID DEPLOYED_AT BUILD_ID IMAGE_ID IMAGE_REF
+export MANIFEST_PATH DEPLOY_ID DEPLOYED_AT BUILD_ID IMAGE_ID IMAGE_REF DEPLOY_SCRIPT_DIR
 export FILE_COUNT="${#REL_PATHS[@]}"
 FILES_JSON="$("${PYTHON}" -c "import json,sys; print(json.dumps(sys.argv[1:]))" "${REL_PATHS[@]}")"
 export FILES_JSON
@@ -88,7 +92,7 @@ import json
 import os
 import sys
 
-sys.path.insert(0, "/opt/cup-survey/deploy")
+sys.path.insert(0, os.environ["DEPLOY_SCRIPT_DIR"])
 from static_manifest import (
     ManifestCorruptError,
     ManifestMissingError,

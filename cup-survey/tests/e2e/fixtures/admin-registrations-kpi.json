@@ -1,0 +1,9 @@
+{
+  "athletes": 42,
+  "entries": 48,
+  "charged": 120000,
+  "confirmed": 96000,
+  "admitted": 40,
+  "pending": 8,
+  "registrations": 12
+}

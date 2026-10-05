@@ -6,4 +6,11 @@ out
 *.log
 playwright-report
 test-results
-data/payment-proofs
+data/
+*.dump
+*.tsbuildinfo
+.preview-brackets/
+debug-*.png
+qa-*.png
+lp-verify.png
+tmp-proof.png

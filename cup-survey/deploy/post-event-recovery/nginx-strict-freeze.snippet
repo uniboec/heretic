@@ -1,0 +1,15 @@
+# Strict freeze: block mutating public reads during recovery.
+# Include in nginx site config for cup26.mma66.ru, then: nginx -t && systemctl reload nginx
+
+location = /api/tournament/results {
+  add_header X-Maintenance-Mode "cup-recovery" always;
+  return 503 '{"error":"maintenance","freeze_id":1}';
+}
+location = /api/tournament/team-rankings {
+  add_header X-Maintenance-Mode "cup-recovery" always;
+  return 503 '{"error":"maintenance","freeze_id":1}';
+}
+location = /api/tournament/brackets {
+  add_header X-Maintenance-Mode "cup-recovery" always;
+  return 503 '{"error":"maintenance","freeze_id":1}';
+}

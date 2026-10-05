@@ -42,11 +42,37 @@ if grep -q "CHANGE_ME" .env 2>/dev/null; then
   exit 1
 fi
 
+echo "==> Хранилище квитанций..."
+chmod +x deploy/*.sh
+./deploy/ensure-payment-proofs-storage.sh
+./deploy/install-payment-proofs-backup-cron.sh
+
+echo "==> Shared state + network..."
+mkdir -p /opt/cup-survey-shared /opt/cup-survey-backups/postgres
+export APP_DIR="$APP_DIR" DEPLOY_SCRIPT_DIR="$APP_DIR/deploy"
+./deploy/network-transition.sh
+
 echo "==> Сборка и запуск контейнеров..."
-docker compose -f docker-compose.prod.yml up -d --build
+RELEASE_TAG="bootstrap-$(date -u +%Y%m%dT%H%M%SZ)"
+GIT_SHA="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
+export DOCKER_BUILDKIT=1
+docker build \
+  --build-arg RELEASE_ID="${RELEASE_TAG}" \
+  --build-arg GIT_SHA="${GIT_SHA}" \
+  -t "cup-survey-app:${RELEASE_TAG}" \
+  -t cup-survey-app:current \
+  -f Dockerfile .
+printf 'CUP_BLUE_IMAGE=cup-survey-app:%s\nCUP_GREEN_IMAGE=cup-survey-app:%s\n' \
+  "${RELEASE_TAG}" "${RELEASE_TAG}" > /opt/cup-survey-shared/compose-images.env
+docker compose \
+  --env-file .env \
+  --env-file /opt/cup-survey-shared/compose-images.env \
+  -f docker-compose.prod.yml up -d postgres app-blue
+./deploy/verify-payment-proofs-storage.sh
 
 echo "==> Nginx..."
 mkdir -p /etc/nginx/snippets
+cp deploy/snippets/cup-survey-upstream.conf /etc/nginx/snippets/cup-survey-upstream.conf
 cp deploy/nginx-security-headers.conf /etc/nginx/snippets/cup-survey-security-headers.conf
 if ! grep -q 'server_tokens off' /etc/nginx/nginx.conf; then
   sed -i 's/http {/http {\n    server_tokens off;/' /etc/nginx/nginx.conf

@@ -1,0 +1,417 @@
+/* Canonical design tokens — single source of truth (top-level, not in @layer) */
+@theme {
+  --color-*: initial;
+
+  --color-accent: #c41e2a;
+  --color-accent-hover: #a31822;
+  --color-accent-soft: #fef2f3;
+  --color-accent-muted: #fce8ea;
+  --color-foreground: #0f1419;
+  --color-muted: #64748b;
+  --color-background: #eef0f3;
+  --color-surface: #f7f8fa;
+  --color-background-soft: #f7f8fa;
+  --color-card: #ffffff;
+  --color-border: #e2e8f0;
+  --color-success: #0d9b5c;
+  --color-success-soft: #ecfdf3;
+  --color-success-border: #a7f3d0;
+  --color-success-foreground: #047857;
+  --color-info: #1a4fd6;
+  --color-info-soft: #eef4ff;
+  --color-info-border: #bfdbfe;
+  --color-info-foreground: #1d4ed8;
+  --color-warning: #b45309;
+  --color-warning-soft: #fffbeb;
+  --color-warning-border: #fde68a;
+  --color-warning-foreground: #b45309;
+  --color-danger: #b91c1c;
+  --color-danger-soft: #fef2f2;
+  --color-danger-border: #fecaca;
+  --color-danger-foreground: #b91c1c;
+  --color-violet-soft: #f5f3ff;
+  --color-violet-border: #ddd6fe;
+  --color-violet-foreground: #5b21b6;
+  --color-sky-soft: #f0f9ff;
+  --color-sky-border: #bae6fd;
+  --color-sky-foreground: #0c4a6e;
+  --color-neutral-soft: #f8fafc;
+  --color-neutral-border: #e2e8f0;
+  --color-neutral-foreground: #0f172a;
+  --color-partner-indigo: #4f46e5;
+  --color-partner-indigo-soft: #eef2ff;
+  --color-partner-combat: #e33e1d;
+  --color-partner-combat-dark: #c93418;
+  --color-partner-combat-soft: #fff4f1;
+  --color-bronze-soft: #fff7ed;
+  --color-bronze-border: #fed7aa;
+  --color-bronze-foreground: #9a3412;
+  --color-sber: #21a038;
+  --color-sber-hover: #1d8f32;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 0.875rem;
+  --radius-card: 0.75rem;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-10: 2.5rem;
+  --spacing-12: 3rem;
+
+  --font-sans: var(--font-manrope), "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --shadow-card: 0 1px 3px rgb(15 20 25 / 0.04), 0 12px 32px rgb(15 20 25 / 0.06);
+  --shadow-card-hover: 0 4px 16px rgb(15 20 25 / 0.08), 0 20px 48px color-mix(in srgb, var(--color-accent) 10%, transparent);
+  --shadow-inner-soft: inset 0 1px 0 rgb(255 255 255 / 0.6);
+}
+
+:root {
+  --header-height: 3.5rem;
+  --z-modal: 50;
+  --z-modal-nested: 60;
+  --z-overlay: 70;
+  --z-popover-backdrop: 199;
+  --z-popover: 200;
+}
+
+@layer theme, base, domains, components, utilities;
+
+@import "tailwindcss";
+
+@source "../components/**/*.{ts,tsx}";
+@source "../lib/**/*.{ts,tsx}";
+@source "./**/*.{ts,tsx}";
+
+@layer base {
+  @import "../styles/base.css";
+}
+
+@layer domains {
+  @import "../components/tournament/brackets/bracket.css";
+}
+
+@layer components {
+  @import "../styles/modals.css";
+}
+
+@layer utilities {
+  @keyframes participants-view-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 0.25rem, 0);
+    }
+
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  .animate-participants-view-in {
+    animation: participants-view-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes ui-stagger-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 0.375rem, 0);
+    }
+
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes ui-resolve-pulse {
+    0% {
+      background-color: transparent;
+    }
+
+    40% {
+      background-color: color-mix(in srgb, var(--color-success) 14%, transparent);
+    }
+
+    100% {
+      background-color: transparent;
+    }
+  }
+
+  @keyframes ui-resolve-muted {
+    0% {
+      background-color: transparent;
+    }
+
+    40% {
+      background-color: color-mix(in srgb, var(--color-border) 35%, transparent);
+    }
+
+    100% {
+      background-color: transparent;
+    }
+  }
+
+  @keyframes ui-item-exit {
+    from {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale(1);
+      filter: blur(0);
+    }
+
+    to {
+      opacity: 0;
+      transform: translate3d(0, -0.375rem, 0) scale(0.985);
+      filter: blur(1px);
+    }
+  }
+
+  .animate-ui-stagger-in {
+    animation: ui-stagger-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .animate-ui-resolve-pulse {
+    animation: ui-resolve-pulse 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .animate-ui-resolve-muted {
+    animation: ui-resolve-muted 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes ui-resolve-glow {
+    0% {
+      box-shadow: inset 0 0 0 0 transparent;
+    }
+
+    35% {
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-success) 25%, transparent);
+    }
+
+    100% {
+      box-shadow: inset 0 0 0 0 transparent;
+    }
+  }
+
+  @keyframes ui-resolve-glow-muted {
+    0% {
+      box-shadow: inset 0 0 0 0 transparent;
+    }
+
+    35% {
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-border) 35%, transparent);
+    }
+
+    100% {
+      box-shadow: inset 0 0 0 0 transparent;
+    }
+  }
+
+  .animate-ui-resolve-glow {
+    animation: ui-resolve-glow 480ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .animate-ui-resolve-glow-muted {
+    animation: ui-resolve-glow-muted 480ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .animate-ui-item-exit {
+    animation: ui-item-exit 300ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    pointer-events: none;
+  }
+
+  @keyframes payment-qr-shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+
+    100% {
+      background-position: -200% 0;
+    }
+  }
+}
+
+/*
+ * Unlayered :root mirror — semantic tokens must resolve after Tailwind @theme merge.
+ * Keep in sync with @theme color definitions above.
+ */
+:root {
+  --color-surface: #f7f8fa;
+  --color-success: #0d9b5c;
+  --color-success-soft: #ecfdf3;
+  --color-success-border: #a7f3d0;
+  --color-success-foreground: #047857;
+  --color-info: #1a4fd6;
+  --color-info-soft: #eef4ff;
+  --color-info-border: #bfdbfe;
+  --color-info-foreground: #1d4ed8;
+  --color-warning: #b45309;
+  --color-warning-soft: #fffbeb;
+  --color-warning-border: #fde68a;
+  --color-warning-foreground: #b45309;
+  --color-danger: #b91c1c;
+  --color-danger-soft: #fef2f2;
+  --color-danger-border: #fecaca;
+  --color-danger-foreground: #b91c1c;
+  --color-violet-soft: #f5f3ff;
+  --color-violet-border: #ddd6fe;
+  --color-violet-foreground: #5b21b6;
+  --color-sky-soft: #f0f9ff;
+  --color-sky-border: #bae6fd;
+  --color-sky-foreground: #0c4a6e;
+  --color-neutral-soft: #f8fafc;
+  --color-neutral-border: #e2e8f0;
+  --color-neutral-foreground: #0f172a;
+  --color-partner-indigo: #4f46e5;
+  --color-partner-indigo-soft: #eef2ff;
+  --color-partner-combat: #e33e1d;
+  --color-partner-combat-dark: #c93418;
+  --color-partner-combat-soft: #fff4f1;
+  --color-bronze-soft: #fff7ed;
+  --color-bronze-border: #fed7aa;
+  --color-bronze-foreground: #9a3412;
+  --color-sber: #21a038;
+  --color-sber-hover: #1d8f32;
+}
+
+/* Judge console semantic layer (see docs/ui-dna) */
+.judge-console {
+  --judge-corner-red: #e5484d;
+  --judge-corner-red-tint: #fff5f5;
+  --judge-corner-blue: #3478f6;
+  --judge-corner-blue-tint: #f5f8ff;
+  --judge-control-dark: #151b24;
+  --judge-fight-active: #18a66a;
+  --judge-clock-muted: #94a3b8;
+  --judge-amber: #d97706;
+  --judge-amber-tint: #fff8e8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .judge-console .judge-score-flash,
+  .judge-console .judge-score-key-flash,
+  .judge-console .judge-technical-action-flash,
+  .judge-console .judge-dq-pulse,
+  .judge-console .judge-clock-warning-pulse {
+    animation: none !important;
+  }
+}
+
+@keyframes judge-clock-warning-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.25);
+  }
+}
+
+.judge-console .judge-clock-warning-pulse {
+  animation: judge-clock-warning-pulse 1s ease-in-out infinite;
+  border-color: var(--judge-amber) !important;
+}
+
+/* Judge console interaction states */
+@keyframes judge-score-flash {
+  0% {
+    transform: scale(1);
+    color: #111827;
+  }
+  35% {
+    transform: scale(1.06);
+    color: #059669;
+  }
+  100% {
+    transform: scale(1);
+    color: #111827;
+  }
+}
+
+@keyframes judge-score-key-flash {
+  0% {
+    background-color: #ffffff;
+    border-color: #c5cdd6;
+    box-shadow: 0 3px 0 #c5cdd6;
+  }
+  40% {
+    background-color: #dcfce7;
+    border-color: #18a66a;
+    box-shadow: 0 3px 0 #18a66a;
+  }
+  100% {
+    background-color: #ffffff;
+    border-color: #c5cdd6;
+    box-shadow: 0 3px 0 #c5cdd6;
+  }
+}
+
+@keyframes judge-dq-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15);
+  }
+}
+
+.judge-console .judge-score-flash {
+  animation: judge-score-flash 0.45s ease-out;
+}
+
+.judge-console .judge-score-key-flash {
+  animation: judge-score-key-flash 0.35s ease-out;
+}
+
+@keyframes judge-technical-action-flash {
+  0% {
+    background-color: #f7f8fa;
+    border-color: #d6dce5;
+  }
+  40% {
+    background-color: #dcfce7;
+    border-color: #18a66a;
+  }
+  100% {
+    background-color: #f7f8fa;
+    border-color: #d6dce5;
+  }
+}
+
+.judge-console .judge-technical-action-flash {
+  animation: judge-technical-action-flash 0.35s ease-out;
+}
+
+@keyframes judge-timeline-chip-enter {
+  0% {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.judge-console .judge-timeline-chip-enter {
+  animation: judge-timeline-chip-enter 0.22s ease-out;
+}
+
+.judge-console .judge-dq-pulse {
+  animation: judge-dq-pulse 2s ease-in-out infinite;
+}
