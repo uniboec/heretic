@@ -1,2 +1,0 @@
--- AlterEnum
-ALTER TYPE "EntryPaymentStatus" ADD VALUE 'ADMITTED_WITHOUT_PAYMENT';

@@ -1,4 +1,0 @@
--- Placeholder frozen numbers from 20261002220000 used global "1-N" values without mat assignment.
--- Repair production data after deploy:
---   npm run backfill:schedule-display-numbers
--- Use --dry-run first to inspect planned repairs.

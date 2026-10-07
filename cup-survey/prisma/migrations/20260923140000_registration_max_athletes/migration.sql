@@ -1,3 +1,0 @@
-ALTER TABLE "RegistrationScheduleSetting"
-ADD COLUMN IF NOT EXISTS "maxAthletes" INTEGER,
-ADD COLUMN IF NOT EXISTS "showMaxAthletes" BOOLEAN NOT NULL DEFAULT false;

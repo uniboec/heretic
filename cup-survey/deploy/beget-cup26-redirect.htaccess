@@ -1,2 +1,0 @@
-RewriteEngine On
-RewriteRule ^(.*)$ https://cup26.mma66.ru/$1 [R=302,L]
